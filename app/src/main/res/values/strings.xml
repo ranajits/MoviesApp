@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">The Movie DB</string>
+    <string name="text_common_loading">Loading...</string>
+    <string name="error_try_again">Something wrong with internet connection. \n Please try after some time.</string>
+    <string name="sort_by_rank">Sort By Rank</string>
+    <string name="search">Search</string>
+
+</resources>
