@@ -1,24 +1,17 @@
 package com.rnjt.eros.ui.MainScreen;
 
-import android.app.SearchManager;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewConfiguration;
-import android.widget.Toast;
 
 import com.rnjt.eros.R;
 import com.rnjt.eros.base.BaseActivity;
 import com.rnjt.eros.base.BasePresenter;
 import com.rnjt.eros.base.MvpPresenter;
 import com.rnjt.eros.ui.MainScreen.adapter.ViewPagerAdapter;
-import com.rnjt.eros.ui.MainScreen.fragments.FavouriteFragment;
 import com.rnjt.eros.ui.MainScreen.fragments.MoviesFragment;
 
 import java.lang.reflect.Field;
@@ -33,7 +26,7 @@ public class HomeActivity extends BaseActivity {
     @Override
     protected void setUpViews() {
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         makeActionOverflowMenuShown();
@@ -44,7 +37,7 @@ public class HomeActivity extends BaseActivity {
         TabLayout tabLayout = findViewById(R.id.sliding_tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+       /* viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             // This method will be invoked when a new page becomes selected.
             @Override
@@ -79,7 +72,7 @@ public class HomeActivity extends BaseActivity {
                         "onPageScrollStateChanged",
                         Toast.LENGTH_SHORT).show();
             }
-        });
+        });*/
     }
 
     @Override
@@ -106,7 +99,7 @@ public class HomeActivity extends BaseActivity {
         }
     }
 
-    @Override
+/*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_icon_text_tabs, menu);
         SearchManager searchManager = (SearchManager) getSystemService(this.SEARCH_SERVICE);
@@ -176,5 +169,5 @@ public class HomeActivity extends BaseActivity {
         searchView.setOnQueryTextListener(queryTextListener);
 
         return super.onCreateOptionsMenu(menu);
-    }
+    }*/
 }
