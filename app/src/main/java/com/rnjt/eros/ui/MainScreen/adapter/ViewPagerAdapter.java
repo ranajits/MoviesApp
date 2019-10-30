@@ -21,7 +21,7 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return new FavouriteFragment();
             default:
-                return new MoviesFragment();
+                return new FavouriteFragment();
         }
     }
 
@@ -40,10 +40,8 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return "Favourites";
             default:
-                return "TOP RATED";
+                return "Favourites";
         }
     }
 
-    public void beginSearch(String query) {
-    }
 }

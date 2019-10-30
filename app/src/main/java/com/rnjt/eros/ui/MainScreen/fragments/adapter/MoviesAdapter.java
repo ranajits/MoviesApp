@@ -16,7 +16,6 @@ import com.rnjt.eros.api.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.UserHolder> implements View.OnClickListener, Filterable {
 
@@ -140,12 +139,28 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.UserHolder
         return this.userEntities;
     }
 
-    public interface ItemClick {
-        void onItemClick(View view, Movie userEntity);
-        void onFavouriteClick(Movie userEntity);
+    public void setFilter(ArrayList<Movie> FilteredDataList) {
+        this.userEntities = FilteredDataList;
+        notifyDataSetChanged();
     }
 
     public void setOnItemClickListener(ItemClick listener) {
         this.itemClick = listener;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
+    }
+
+    public interface ItemClick {
+        void onItemClick(View view, Movie userEntity);
+
+        void onFavouriteClick(Movie userEntity);
     }
 }

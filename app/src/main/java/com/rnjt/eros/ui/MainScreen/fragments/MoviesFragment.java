@@ -1,5 +1,6 @@
 package com.rnjt.eros.ui.MainScreen.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,6 +17,7 @@ import com.rnjt.eros.R;
 import com.rnjt.eros.api.model.Movie;
 import com.rnjt.eros.api.model.Movies;
 import com.rnjt.eros.base.BaseFragment;
+import com.rnjt.eros.base.LogUtils;
 import com.rnjt.eros.ui.DetailScreen.MovieDetailActivity;
 import com.rnjt.eros.ui.ErosApplication;
 import com.rnjt.eros.ui.MainScreen.MoviesContract;
@@ -39,6 +41,30 @@ public class MoviesFragment extends BaseFragment<MoviesPresenter> implements Mov
     private GridLayoutManager layoutManager;
     boolean isLoading;
     ArrayList<Movie> movieArrayList;
+    ArrayList<Movie> filteredDataList;
+    boolean isAttached;
+    private RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+        }
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            int visibleItemCount = layoutManager.getChildCount();
+            int totalItemCount = layoutManager.getItemCount();
+            int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+            if (!isLoading && !ErosApplication.setPagination) {
+                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                        && firstVisibleItemPosition >= 0) {
+                    LogUtils.logE("scroll Loading");
+                    getPresenter().getMovies(pageId + 1);
+                }
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -50,8 +76,23 @@ public class MoviesFragment extends BaseFragment<MoviesPresenter> implements Mov
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        isAttached = true;
+    }
+
+    void setmMovieFragment() {
+        ErosApplication.setMoviesFragment(this);
+    }
+
+    @Override
+    protected MoviesPresenter createPresenter() {
+        return new MoviesPresenter();
+    }
+
+    @Override
     protected void setUpViews() {
-//        layoutManager = new LinearLayoutManager(getActivity());
+        setmMovieFragment();
         layoutManager = new GridLayoutManager(getActivity(), 2);
         rvMovies.setLayoutManager(layoutManager);
 
@@ -65,7 +106,10 @@ public class MoviesFragment extends BaseFragment<MoviesPresenter> implements Mov
         if (ErosApplication.movieArrayList != null && ErosApplication.movieArrayList.size() > 0) {
             showLoadedResponse(ErosApplication.movieArrayList);
         } else {
-            getPresenter().getMovies(pageId);
+            if (isAttached) {
+                getPresenter().getMovies(pageId);
+                isAttached = false;
+            }
         }
 
         moviesAdapter.setOnItemClickListener(new MoviesAdapter.ItemClick() {
@@ -90,24 +134,6 @@ public class MoviesFragment extends BaseFragment<MoviesPresenter> implements Mov
                 ErosApplication.movieArrayList = moviesAdapter.getUserEntities();
             }
         });
-    }
-
-    @Override
-    protected MoviesPresenter createPresenter() {
-        return new MoviesPresenter();
-    }
-
-    @Override
-    public void showMoviesResponse(Movies result) {
-        pageId = result.getPage();
-        movieArrayList.addAll(result.getMovies());
-        if (movieArrayList != null) {
-            moviesAdapter.setUserEntities(movieArrayList);
-            ErosApplication.movieArrayList = moviesAdapter.getUserEntities();
-            lotiView.setVisibility(View.GONE);
-        } else {
-            Toast.makeText(getContext(), "No movies found", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
@@ -141,36 +167,64 @@ public class MoviesFragment extends BaseFragment<MoviesPresenter> implements Mov
     }
 
     @Override
+    public void showMoviesResponse(Movies result) {
+        LogUtils.logE("PAGE: " + result.getPage());
+        pageId = result.getPage();
+        movieArrayList.addAll(result.getMovies());
+        ErosApplication.movieArrayList = movieArrayList;
+
+        if (movieArrayList != null) {
+            moviesAdapter.setUserEntities(movieArrayList);
+            lotiView.setVisibility(View.GONE);
+        } else {
+            Toast.makeText(getContext(), "No movies found", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
+            //moviesAdapter.notifyDataSetChanged();
             getFragmentManager().beginTransaction().detach(this).attach(this).commit();
         }
     }
 
-    private RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
+    public void beginSearch(String query) {
+        LogUtils.logE("MoviesFragment query: " + query);
+
+        filteredDataList = filter(movieArrayList, query);
+        if (query != null & query.length() > 0) {
+            LogUtils.logE("MoviesFragment query: " + movieArrayList.size());
+            LogUtils.logE("MoviesFragment query: " + filteredDataList.size());
+            if (filteredDataList != null && filteredDataList.size() == 0)
+                Toast.makeText(getContext(), "No movies found", Toast.LENGTH_SHORT).show();
+            else
+                moviesAdapter.setFilter(filteredDataList);
+        } else {
+            LogUtils.logE("MoviesFragment query* : " + movieArrayList.size());
+            LogUtils.logE("MoviesFragment query* : " + filteredDataList.size());
+
+            moviesAdapter.setUserEntities(movieArrayList);
         }
+    }
 
-        @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
-            int visibleItemCount = layoutManager.getChildCount();
-            int totalItemCount = layoutManager.getItemCount();
-            int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+    public MoviesAdapter getAdapter() {
+        return moviesAdapter;
+    }
 
-            if (!isLoading) {
-                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
-                        && firstVisibleItemPosition >= 0) {
-                    getPresenter().getMovies(pageId + 1);
-                }
+    private ArrayList<Movie> filter(ArrayList<Movie> dataList, String newText) {
+        newText = newText.toLowerCase();
+        String text;
+        filteredDataList = new ArrayList<>();
+        for (Movie dataFromDataList : dataList) {
+            text = dataFromDataList.getTitle().toLowerCase();
+
+            if (text.contains(newText)) {
+                filteredDataList.add(dataFromDataList);
             }
         }
-    };
 
-    public void beginSearch(String query) {
-        moviesAdapter.getFilter().filter(query);
+        return filteredDataList;
     }
 }

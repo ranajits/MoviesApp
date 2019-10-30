@@ -2,10 +2,7 @@ package com.rnjt.eros.ui.MainScreen;
 
 
 import com.rnjt.eros.api.model.Movies;
-import com.rnjt.eros.api.model.UserInfo;
 import com.rnjt.eros.base.BaseView;
-
-import java.util.ArrayList;
 
 public class MoviesContract {
 
